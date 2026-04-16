@@ -251,21 +251,23 @@ class CanvasWidget(QWidget):
         """Создание фигуры по имени"""
         width = 140
         height = 90
-
         left, top, right, bottom = self.get_work_bounds()
 
-        x = max(left, min(int(x) - width // 2, right - width))
-        y = max(top, min(int(y) - height // 2, bottom - height))
-
-        if self.current_shape_name == "rectangle":
-            return RectangleShape(x, y, width, height, QColor("#7ADFBA"))  
-        elif self.current_shape_name == "ellipse":
-            return EllipseShape(x, y, width, height, QColor("#FFD3B6"))    
-        elif self.current_shape_name == "circle":
-            size = min(width, height)
-            return CircleShape(x, y, size, size, QColor("#816FD3"))        
-        elif self.current_shape_name == "triangle":
-            return TriangleShape(x, y, width, height, QColor("#FFAAA5"))   
+        if self.current_shape_name == "circle":
+            size = min(width, height) 
+            x = max(left, min(int(x) - size // 2, right - size))
+            y = max(top, min(int(y) - size // 2, bottom - size))
+            return CircleShape(x, y, size, size, QColor("#816FD3"))
+        else:
+            x = max(left, min(int(x) - width // 2, right - width))
+            y = max(top, min(int(y) - height // 2, bottom - height))
+            
+            if self.current_shape_name == "rectangle":
+                return RectangleShape(x, y, width, height, QColor("#7ADFBA"))
+            elif self.current_shape_name == "ellipse":
+                return EllipseShape(x, y, width, height, QColor("#FFD3B6"))
+            elif self.current_shape_name == "triangle":
+                return TriangleShape(x, y, width, height, QColor("#FFAAA5"))
 
         return None
 
@@ -506,4 +508,4 @@ def main():
     sys.exit(app.exec_())
 
 
-main()
+main()   
