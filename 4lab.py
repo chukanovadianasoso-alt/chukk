@@ -87,3 +87,56 @@ class Shape:
     def draw(self, painter):
         raise NotImplementedError
 
+
+class RectangleShape(Shape):
+    def draw(self, painter):
+        if self.selected:
+            painter.setPen(QPen(QColor("blue"), 3))
+        else:
+            painter.setPen(QPen(Qt.black, 2))
+        painter.setBrush(QBrush(self.color))
+        painter.drawRect(self.get_rect())
+
+
+class EllipseShape(Shape):
+    def draw(self, painter):
+        if self.selected:
+            painter.setPen(QPen(QColor("blue"), 3))
+        else:
+            painter.setPen(QPen(Qt.black, 2))
+        painter.setBrush(QBrush(self.color))
+        painter.drawEllipse(self.get_rect())
+
+
+class CircleShape(Shape):
+    """Круг - частный случай эллипса с равными шириной и высотой"""
+    def draw(self, painter):
+        if self.selected:
+            painter.setPen(QPen(QColor("blue"), 3))
+        else:
+            painter.setPen(QPen(Qt.black, 2))
+        painter.setBrush(QBrush(self.color))
+        # Для круга ширина и высота всегда равны
+        size = min(self.width, self.height)
+        rect = QRect(self.x, self.y, size, size)
+        painter.drawEllipse(rect)
+
+
+class TriangleShape(Shape):
+    def draw(self, painter):
+        if self.selected:
+            painter.setPen(QPen(QColor("blue"), 3))
+        else:
+            painter.setPen(QPen(Qt.black, 2))
+        painter.setBrush(QBrush(self.color))
+
+        points = QPolygon(
+            [
+                QPoint(self.x + self.width // 2, self.y),
+                QPoint(self.x, self.y + self.height),
+                QPoint(self.x + self.width, self.y + self.height),
+            ]
+        )
+
+        painter.drawPolygon(points)
+
