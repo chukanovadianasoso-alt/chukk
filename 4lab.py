@@ -109,14 +109,12 @@ class EllipseShape(Shape):
 
 
 class CircleShape(Shape):
-    """Круг - частный случай эллипса с равными шириной и высотой"""
     def draw(self, painter):
         if self.selected:
             painter.setPen(QPen(QColor("blue"), 3))
         else:
             painter.setPen(QPen(Qt.black, 2))
         painter.setBrush(QBrush(self.color))
-        # Для круга ширина и высота всегда равны
         size = min(self.width, self.height)
         rect = QRect(self.x, self.y, size, size)
         painter.drawEllipse(rect)
@@ -140,3 +138,81 @@ class TriangleShape(Shape):
 
         painter.drawPolygon(points)
 
+class MyStorage:
+    """Контейнер"""
+    def __init__(self, capacity: int = 100):
+        self.__items = [None] * capacity
+        self.__count = 0
+
+    def get_count(self):
+        return self.__count
+
+    def set_object(self, index: int, obj: Shape):
+        if index < 0 or index >= len(self.__items):
+            raise IndexError("Index out of bounds")
+        if obj is None:
+            raise ValueError("Cannot store None")
+        self.__items[index] = obj
+        if index >= self.__count:
+            self.__count = index + 1
+
+    def get_object(self, index: int):
+        if index < 0 or index >= self.__count:
+            raise IndexError("Index out of bounds")
+        return self.__items[index]
+
+    def add(self, obj: Shape):
+        if self.__count >= len(self.__items):
+            raise OverflowError("Storage is full")
+        self.__items[self.__count] = obj
+        self.__count += 1
+
+    def remove_at(self, index: int):
+        if index < 0 or index >= self.__count:
+            raise IndexError("Index out of bounds")
+        for i in range(index, self.__count - 1):
+            self.__items[i] = self.__items[i + 1]
+        self.__items[self.__count - 1] = None
+        self.__count -= 1
+    
+    def remove_selected(self):
+        i = 0
+        while i < self.__count:
+            shape = self.__items[i]
+            if shape and shape.selected:
+                self.remove_at(i)
+            else:
+                i += 1
+    
+    def clear_selection(self):
+        for i in range(self.__count):
+            if self.__items[i]:
+                self.__items[i].set_selected(False)
+    
+    def get_selected_shapes(self):
+        return [self.__items[i] for i in range(self.__count) if self.__items[i] and self.__items[i].selected]
+    
+    def find_shape_at(self, x, y):
+        for i in range(self.__count - 1, -1, -1):
+            shape = self.__items[i]
+            if shape and shape.contains_point(x, y):
+                return shape
+        return None
+
+    def find_all_shapes_at(self, x, y):
+        shapes = []
+        for i in range(self.__count - 1, -1, -1):
+            shape = self.__items[i]
+            if shape and shape.contains_point(x, y):
+                shapes.append(shape)
+        return shapes
+    
+    def draw_all(self, painter):
+        for i in range(self.__count):
+            if self.__items[i]:
+                self.__items[i].draw(painter)
+    
+    def fit_all_inside_bounds(self, left, top, right, bottom):
+        for i in range(self.__count):
+            if self.__items[i]:
+                self.__items[i].fit_inside_bounds(left, top, right, bottom)
