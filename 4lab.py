@@ -216,3 +216,161 @@ class MyStorage:
         for i in range(self.__count):
             if self.__items[i]:
                 self.__items[i].fit_inside_bounds(left, top, right, bottom)
+
+class CanvasWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setMinimumSize(700, 450)
+        self.setStyleSheet("background-color: white;")
+
+        self.storage = MyStorage(200)
+        self.current_shape_name = "rectangle"
+        self.work_margin = 12
+
+    def get_work_bounds(self):
+        """Возвращение границы рабочей области"""
+        left = self.work_margin
+        top = self.work_margin
+        right = self.width() - self.work_margin
+        bottom = self.height() - self.work_margin
+        return left, top, right, bottom
+
+    def set_current_shape(self, shape_name):
+        self.current_shape_name = shape_name
+
+    def get_selected_shapes(self):
+        return self.storage.get_selected_shapes()
+
+    def set_color_for_selected(self, color):
+        for shape in self.storage.get_selected_shapes():
+            shape.set_color(color)
+        self.update()
+
+    def create_shape_by_name(self, x, y):
+        """Создание фигуры по имени"""
+        width = 140
+        height = 90
+
+        left, top, right, bottom = self.get_work_bounds()
+
+        x = max(left, min(int(x) - width // 2, right - width))
+        y = max(top, min(int(y) - height // 2, bottom - height))
+
+        if self.current_shape_name == "rectangle":
+            return RectangleShape(x, y, width, height, QColor("#7ADFBA"))  
+        elif self.current_shape_name == "ellipse":
+            return EllipseShape(x, y, width, height, QColor("#FFD3B6"))    
+        elif self.current_shape_name == "circle":
+            size = min(width, height)
+            return CircleShape(x, y, size, size, QColor("#816FD3"))        
+        elif self.current_shape_name == "triangle":
+            return TriangleShape(x, y, width, height, QColor("#FFAAA5"))   
+
+        return None
+
+    def mousePressEvent(self, event):
+        self.setFocus()
+
+        if event.button() == Qt.LeftButton:
+            point = event.pos()
+            ctrl_pressed = bool(event.modifiers() & Qt.ControlModifier)
+
+            if ctrl_pressed:
+                shapes_under_cursor = self.storage.find_all_shapes_at(point.x(), point.y())
+                
+                if shapes_under_cursor:
+                    for shape in shapes_under_cursor:
+                        shape.set_selected(not shape.selected)
+                else:
+                    self.storage.clear_selection()
+            else:
+                self.storage.clear_selection()
+                shape = self.storage.find_shape_at(point.x(), point.y())
+                
+                if shape is not None:
+                    shape.set_selected(True)
+                else:
+                    new_shape = self.create_shape_by_name(point.x(), point.y())
+                    if new_shape is not None:
+                        self.storage.add(new_shape)
+
+            self.update()
+
+        super().mousePressEvent(event)
+
+    def keyPressEvent(self, event):
+        move_step = 10
+        resize_step = 10 
+        selected_shapes = self.storage.get_selected_shapes()
+        shift_pressed = bool(event.modifiers() & Qt.ShiftModifier)
+
+        left, top, right, bottom = self.get_work_bounds()
+
+        if event.key() == Qt.Key_Delete:
+            if selected_shapes:
+                self.storage.remove_selected()
+                self.update()
+                return
+
+        if not selected_shapes:
+            super().keyPressEvent(event)
+            return
+
+        if shift_pressed:
+            if event.key() == Qt.Key_Left or event.key() == Qt.Key_Right:
+                delta = -resize_step if event.key() == Qt.Key_Left else resize_step
+                for shape in selected_shapes:
+                    shape.resize_uniform(delta, left, top, right, bottom)
+                self.update()
+                return
+            elif event.key() == Qt.Key_Up or event.key() == Qt.Key_Down:
+                delta = -resize_step if event.key() == Qt.Key_Up else resize_step
+                for shape in selected_shapes:
+                    shape.resize_uniform(delta, left, top, right, bottom)
+                self.update()
+                return
+        else:
+            if event.key() == Qt.Key_Left:
+                for shape in selected_shapes:
+                    shape.move_within_bounds(-move_step, 0, left, top, right, bottom)
+                self.update()
+                return
+            elif event.key() == Qt.Key_Right:
+                for shape in selected_shapes:
+                    shape.move_within_bounds(move_step, 0, left, top, right, bottom)
+                self.update()
+                return
+            elif event.key() == Qt.Key_Up:
+                for shape in selected_shapes:
+                    shape.move_within_bounds(0, -move_step, left, top, right, bottom)
+                self.update()
+                return
+            elif event.key() == Qt.Key_Down:
+                for shape in selected_shapes:
+                    shape.move_within_bounds(0, move_step, left, top, right, bottom)
+                self.update()
+                return
+
+        super().keyPressEvent(event)
+
+    def resizeEvent(self, event):
+        left, top, right, bottom = self.get_work_bounds()
+        self.storage.fit_all_inside_bounds(left, top, right, bottom)
+        self.update()
+        super().resizeEvent(event)
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        left, top, right, bottom = self.get_work_bounds()
+        work_rect = QRect(left, top, right - left, bottom - top)
+
+        painter.setPen(QPen(Qt.black, 1))
+        painter.setBrush(Qt.NoBrush)
+        painter.drawRect(work_rect)
+
+        self.storage.draw_all(painter)
