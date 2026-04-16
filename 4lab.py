@@ -374,3 +374,136 @@ class CanvasWidget(QWidget):
         painter.drawRect(work_rect)
 
         self.storage.draw_all(painter)
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("ЛР4 - Визуальный редактор")
+        self.resize(1000, 700)
+
+        self._create_actions()
+        self._create_menu()
+        self._create_toolbar()
+        self._create_central_widget()
+
+    def _create_actions(self):
+        self.rectangle_action = QAction("Прямоугольник", self)
+        self.rectangle_action.triggered.connect(
+            lambda: self.set_current_shape("rectangle")
+        )
+
+        self.ellipse_action = QAction("Эллипс", self)
+        self.ellipse_action.triggered.connect(
+            lambda: self.set_current_shape("ellipse")
+        )
+
+        self.circle_action = QAction("Круг", self)
+        self.circle_action.triggered.connect(
+            lambda: self.set_current_shape("circle")
+        )
+
+        self.triangle_action = QAction("Треугольник", self)
+        self.triangle_action.triggered.connect(
+            lambda: self.set_current_shape("triangle")
+        )
+
+        self.color_action = QAction("Цвет", self)
+        self.color_action.setShortcut("C")
+        self.color_action.triggered.connect(self.choose_color)
+
+        self.exit_action = QAction("Выход", self)
+        self.exit_action.triggered.connect(self.close)
+        
+        self.help_action = QAction("Справка", self)
+        self.help_action.setShortcut("F1")
+        self.help_action.triggered.connect(self.show_help)
+
+    def _create_menu(self):
+        menu_bar = self.menuBar()
+        
+        file_menu = menu_bar.addMenu("Файл")
+        file_menu.addAction(self.exit_action)
+        
+        help_menu = menu_bar.addMenu("Справка")
+        help_menu.addAction(self.help_action)
+
+    def _create_toolbar(self):
+        toolbar = QToolBar("Панель инструментов")
+        toolbar.setMovable(False)
+        self.addToolBar(toolbar)
+
+        toolbar.addAction(self.rectangle_action)
+        toolbar.addAction(self.ellipse_action)
+        toolbar.addAction(self.circle_action)
+        toolbar.addAction(self.triangle_action)
+        toolbar.addAction(self.color_action)
+
+    def _create_central_widget(self):
+        central_widget = QWidget()
+        layout = QVBoxLayout(central_widget)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(8)
+
+        self.info_label = QLabel("Выбранная фигура: Прямоугольник")
+        self.info_label.setStyleSheet("font-size: 14px; padding: 6px; background-color: #f0f0f0; border: 1px solid #ccc;")
+
+        self.canvas = CanvasWidget()
+
+        layout.addWidget(self.info_label)
+        layout.addWidget(self.canvas)
+
+        self.setCentralWidget(central_widget)
+
+    def show_help(self):
+        """Показывает окно справки с управлением"""
+        help_text = """
+        <h3>Управление программой</h3>
+        <ul>
+            <li><b>Стрелки</b> - перемещение выделенной фигуры</li>
+            <li><b>Shift + Стрелки</b> - равномерное изменение размера выделенной фигуры</li>
+            <li><b>Delete</b> - удалить выделенную фигуру(ы)</li>
+            <li><b>C</b> - изменить цвет выделенной фигуры(ы)</li>
+            <li><b>Ctrl + клик</b> - множественный выбор фигур (включая пересекающиеся)</li>
+            <li><b>Клик без Ctrl</b> - выделить одну фигуру или создать новую</li>
+            <li><b>F1</b> - показать эту справку</li>
+        </ul>
+        """
+        QMessageBox.information(self, "Справка", help_text)
+
+    def set_current_shape(self, shape_name):
+        self.canvas.set_current_shape(shape_name)
+
+        shape_names = {
+            "rectangle": "Прямоугольник",
+            "ellipse": "Эллипс",
+            "circle": "Круг",
+            "triangle": "Треугольник",
+        }
+
+        self.info_label.setText(
+            f"Выбранная фигура: {shape_names.get(shape_name, 'Неизвестно')}"
+        )
+
+    def choose_color(self):
+        selected_shapes = self.canvas.get_selected_shapes()
+
+        if not selected_shapes:
+            QMessageBox.information(self, "Цвет", "Сначала выделите фигуру (кликните по ней)")
+            return
+
+        initial_color = selected_shapes[0].color
+        color = QColorDialog.getColor(initial_color, self, "Выберите цвет")
+
+        if color.isValid():
+            self.canvas.set_color_for_selected(color)
+
+
+def main():
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())
+
+
+main()
