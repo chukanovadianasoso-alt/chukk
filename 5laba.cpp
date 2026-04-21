@@ -141,20 +141,6 @@ void demonstrateOverrideVsHide() {
     delete descPtr;
 }
 
-void demonstrateDirectObjectCall() {
-    cout << "\n4. Вызов через объект\n";
-
-    Desc desc(30.0, "purple");
-
-    cout << "\nЧерез объект:" << endl;
-    desc.nonVirtualMethod();  
-    desc.virtualMethod();    
-
-    Base& baseRef = desc;
-    cout << "\nЧерез ссылку Base&:" << endl;
-    baseRef.nonVirtualMethod();  
-    baseRef.virtualMethod();     
-}
 
 int main() {
 #ifdef _WIN32
@@ -164,7 +150,6 @@ int main() {
     demonstrateVirtualVsNonVirtual();
     demonstrateCallFromMethod();
     demonstrateOverrideVsHide();
-    demonstrateDirectObjectCall();
 
     return 0;
 }
