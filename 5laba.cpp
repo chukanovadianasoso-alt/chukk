@@ -91,3 +91,80 @@ public:
 };
 
 int Desc::totalDesc = 0;
+
+void demonstrateVirtualVsNonVirtual() {
+    cout << "\n1. Виртуальный и Невиртуальный метод\n";
+
+    Base* basePtr = new Desc(15.5, "red");
+    Desc* descPtr = new Desc(10.0, "green");
+
+    cout << "\nВызов виртуального и невиртуального метода объекта Base* = объект Desc:" << endl;
+    basePtr->nonVirtualMethod();  
+    basePtr->virtualMethod();     
+
+    cout << "\nВызов виртуального и невиртуального метода объекта Desc* = объект Desc:" << endl;
+    descPtr->nonVirtualMethod(); 
+    descPtr->virtualMethod();    
+
+    delete basePtr;
+    delete descPtr;
+}
+
+void demonstrateCallFromMethod() {
+    cout << "\n2. Вызов метода из другого метода\n";
+
+    Base* descPtr = new Desc(20.0, "yellow");
+
+    cout << "\ncallNonVirtual() (вызывает НЕвиртуальный метод):" << endl;
+    descPtr->callNonVirtual();  
+
+    cout << "\nrender() (вызывает виртуальный метод):" << endl;
+    descPtr->render();         
+
+    delete descPtr;
+}
+
+void demonstrateOverrideVsHide() {
+    cout << "\n3. Переопределение и перекрытие\n";
+
+    Desc* descPtr = new Desc(7.0, "pink");
+
+    cout << "\nЧерез Desc*:" << endl;
+    descPtr->nonVirtualMethod();  
+    descPtr->virtualMethod();     
+
+    cout << "\nЧерез Base* (тот же объект):" << endl;
+    Base* basePtr = descPtr;
+    basePtr->nonVirtualMethod();  
+    basePtr->virtualMethod();     
+
+    delete descPtr;
+}
+
+void demonstrateDirectObjectCall() {
+    cout << "\n4. Вызов через объект\n";
+
+    Desc desc(30.0, "purple");
+
+    cout << "\nЧерез объект:" << endl;
+    desc.nonVirtualMethod();  
+    desc.virtualMethod();    
+
+    Base& baseRef = desc;
+    cout << "\nЧерез ссылку Base&:" << endl;
+    baseRef.nonVirtualMethod();  
+    baseRef.virtualMethod();     
+}
+
+int main() {
+#ifdef _WIN32
+    SetConsoleCP(65001);
+    SetConsoleOutputCP(65001);
+#endif
+    demonstrateVirtualVsNonVirtual();
+    demonstrateCallFromMethod();
+    demonstrateOverrideVsHide();
+    demonstrateDirectObjectCall();
+
+    return 0;
+}
