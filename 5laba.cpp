@@ -9,33 +9,33 @@ using namespace std;
 
 class Base {
 protected:
-    string color;
+    string material;  
     int id;
 
 public:
-    static int totalObjects;
+    static int totalBase;
 
-    Base() : color("blue") {
-        id = ++totalObjects;
-        cout << "Base(): создан объект id=" << id << endl;
+    Base() : material("plastic") {  
+        id = ++totalBase;
+        cout << "Base(): создан объект id=" << id << ", материал=" << material << endl;
     }
 
-    Base(string color_input) : color(color_input) {
-        id = ++totalObjects;
-        cout << "Base(string): создан объект id=" << id << endl;
+    Base(string material_input) : material(material_input) {
+        id = ++totalBase;
+        cout << "Base() с параметром: создан объект id=" << id << ", материал=" << material << endl;
     }
 
     virtual ~Base() {
-        totalObjects--;
+        totalBase--;
         cout << "~Base(): удалён объект id=" << id << endl;
     }
 
     void nonVirtualMethod() {
-        cout << "Base::nonVirtualMethod() -> id=" << id << endl;
+        cout << "Base::nonVirtualMethod() id=" << id << endl;
     }
 
     virtual void virtualMethod() {
-        cout << "Base::virtualMethod() -> id=" << id << endl;
+        cout << "Base::virtualMethod() id=" << id << endl;
     }
 
     virtual void render() {
@@ -49,39 +49,40 @@ public:
     }
 };
 
-int Base::totalObjects = 0;
+int Base::totalBase = 0;
+
 
 class Desc : public Base {
 private:
-    double value;
-    int descID;
+    double radius;
+    int descID; 
 
 public:
-    static int totalDesc;
+    static int totalDescs;  
 
-    Desc() : Base(), value(10.0) {
-        descID = ++totalDesc;
-        cout << "Desc(): создан потомок id=" << descID << endl;
+    Desc() : Base(), radius(1.0) {
+        descID = ++totalDescs;
+        cout << "Desc(): создан потомок id=" << descID << ", радиус=" << radius << endl;
     }
 
-    Desc(double val, string color) : Base(color), value(val) {
-        descID = ++totalDesc;
-        cout << "Desc(double,string): создан потомок id=" << descID << endl;
+    Desc(double rad, string mat) : Base(mat), radius(rad) {  // вместо col
+        descID = ++totalDescs;
+        cout << "Desc(double,string): создан потомок id=" << descID << ", радиус=" << radius << endl;
     }
 
     ~Desc() override {
-        totalDesc--;
-        cout << "~Desc(): удалён потомок id=" << descID << endl;
+        totalDescs--;
+        cout << "~Desc(): удалён потомок id=" << descID << ", радиус=" << radius << endl;
     }
 
     void nonVirtualMethod() {
         cout << "Desc::nonVirtualMethod() -> потомок id=" << descID
-             << " значение=" << value << endl;
+             << ", радиус=" << radius << endl;
     }
 
     void virtualMethod() override {
         cout << "Desc::virtualMethod() -> потомок id=" << descID
-             << " значение=" << value << endl;
+             << ", радиус=" << radius << endl;
     }
 
     void render() override {
@@ -90,54 +91,54 @@ public:
     }
 };
 
-int Desc::totalDesc = 0;
+int Desc::totalDescs = 0;
+
 
 void demonstrateVirtualVsNonVirtual() {
-    cout << "\n1. Виртуальный и Невиртуальный метод\n";
+    cout << "\n1. Виртуальные и невирутуальные методы\n";
 
-    Base* basePtr = new Desc(15.5, "red");
-    Desc* descPtr = new Desc(10.0, "green");
+    Base* basePtr = new Desc(15.5, "steel");   
+    Desc* descPtr = new Desc(10.0, "aluminum"); 
 
-    cout << "\nВызов виртуального и невиртуального метода объекта Base* = объект Desc:" << endl;
+    cout << "\nВызов через указатель на базовый класс (Base*)" << endl;
+    cout << "  nonVirtualMethod (невиртуальный): ";
     basePtr->nonVirtualMethod();  
-    basePtr->virtualMethod();     
 
-    cout << "\nВызов виртуального и невиртуального метода объекта Desc* = объект Desc:" << endl;
+    cout << "  virtualMethod (виртуальный): ";
+    basePtr->virtualMethod();
+
+    cout << "\nВызов через указатель на класс-потомок (Desc*)" << endl;
+    cout << "  nonVirtualMethod: ";
     descPtr->nonVirtualMethod(); 
-    descPtr->virtualMethod();    
+
+    cout << "  virtualMethod: ";
+    descPtr->virtualMethod();  
+
+    cout << "\nВызов метода из другого метода" << endl;
+    cout << "  callNonVirtual():" << endl;
+    basePtr->callNonVirtual();
+
+    cout << "  render():  " << endl;
+    basePtr->render();       
 
     delete basePtr;
     delete descPtr;
 }
 
-void demonstrateCallFromMethod() {
-    cout << "\n2. Вызов метода из другого метода\n";
-
-    Base* descPtr = new Desc(20.0, "yellow");
-
-    cout << "\ncallNonVirtual() (вызывает НЕвиртуальный метод):" << endl;
-    descPtr->callNonVirtual();  
-
-    cout << "\nrender() (вызывает виртуальный метод):" << endl;
-    descPtr->render();         
-
-    delete descPtr;
-}
 
 void demonstrateOverrideVsHide() {
-    cout << "\n3. Переопределение и перекрытие\n";
+    cout << "\n2. Переопределение и перекрытие\n";
 
-    Desc* descPtr = new Desc(7.0, "pink");
-
-    cout << "\nЧерез Desc*:" << endl;
-    descPtr->nonVirtualMethod();  
-    descPtr->virtualMethod();     
-
-    cout << "\nЧерез Base* (тот же объект):" << endl;
+    Desc* descPtr = new Desc(7.0, "copper"); 
     Base* basePtr = descPtr;
-    basePtr->nonVirtualMethod();  
-    basePtr->virtualMethod();     
 
+    cout << "\nЧерез указатель на потомка (Desc*)" << endl;
+    descPtr->nonVirtualMethod(); 
+    descPtr->virtualMethod(); 
+
+    cout << "\nЧерез указатель на базовый класс (Base*)" << endl;
+    basePtr->nonVirtualMethod();   
+    basePtr->virtualMethod();    
     delete descPtr;
 }
 
@@ -147,9 +148,8 @@ int main() {
     SetConsoleCP(65001);
     SetConsoleOutputCP(65001);
 #endif
-    demonstrateVirtualVsNonVirtual();
-    demonstrateCallFromMethod();
-    demonstrateOverrideVsHide();
 
+    demonstrateVirtualVsNonVirtual();
+    demonstrateOverrideVsHide();
     return 0;
 }
